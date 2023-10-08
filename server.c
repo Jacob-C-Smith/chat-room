@@ -74,7 +74,8 @@ int chat_room_server_create ( chat_room_server **const pp_chat_room_server, cons
     char             *buf                = calloc(len+1, sizeof(char));
     json_value       *p_value            = 0,
                      *p_name             = 0,
-                     *p_port             = 0;
+                     *p_port             = 0,
+                     *p_welcome_message  = 0;
     chat_room_server *p_chat_room_server = 0;
 
     // Load the file into the buffer
@@ -92,6 +93,9 @@ int chat_room_server_create ( chat_room_server **const pp_chat_room_server, cons
         
         // Get the name of the server
         p_name = dict_get(p_dict, "name");
+
+        // Get the welcome message
+        p_welcome_message = dict_get(p_dict, "welcome message");
 
         // Get the port number
         p_port = dict_get(p_dict, "port");
@@ -128,6 +132,32 @@ int chat_room_server_create ( chat_room_server **const pp_chat_room_server, cons
     }
     // Default
     else goto name_type_error;
+
+    // Store the welcome message
+    if ( p_welcome_message->type == JSON_VALUE_STRING )
+    {
+
+        // Initialized data
+        char   *welcome_message     = p_welcome_message->string;
+        size_t  welcome_message_len = strlen(welcome_message);
+
+        // Error check
+        if ( welcome_message_len > MAX_SERVER_WELCOME_MESSAGE_LEN )
+        {
+
+            // Store the maximum name length
+            welcome_message_len = MAX_SERVER_WELCOME_MESSAGE_LEN;
+
+            // Warn the user
+            printf("[chat room] Truncating out of bounds server welcome message in call to function \"%s\"\n", __FUNCTION__);
+        }
+
+        // Copy the name
+        strncpy(p_chat_room_server->welcome_message, welcome_message, welcome_message_len);
+
+    }
+    // Default
+    else goto welcome_message_type_error;
 
     // Store the port number
     if ( p_port->type == JSON_VALUE_INTEGER ) p_chat_room_server->port_number = (unsigned short) p_port->integer;
@@ -178,6 +208,14 @@ int chat_room_server_create ( chat_room_server **const pp_chat_room_server, cons
             name_type_error:
                 #ifndef NDEBUG
                     printf("[chat room] \"name\" property must be of type < STRING > in call to function \"%s\"\n", __FUNCTION__);
+                #endif
+
+                // Error
+                return 0;
+
+            welcome_message_type_error:
+                #ifndef NDEBUG
+                    printf("[chat room] \"welcome message\" property must be of type < STRING > in call to function \"%s\"\n", __FUNCTION__);
                 #endif
 
                 // Error
