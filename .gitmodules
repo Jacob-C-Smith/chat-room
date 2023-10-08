@@ -18,3 +18,4 @@
 	url = https://github.com/Jacob-C-Smith/sync
 [submodule "extern/queue"]
 	path = extern/queue
+	url = https://github.com/Jacob-C-Smith/queue
