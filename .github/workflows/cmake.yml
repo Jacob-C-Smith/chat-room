@@ -1,4 +1,4 @@
-name: chat-room
+name: chat room
 
 on:
   push:
